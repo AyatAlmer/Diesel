@@ -8,9 +8,9 @@ class ProductRepository
     public function getAll($filters = [])
     {
     if (auth()->user()->role === 'admin') {
-        $query = Product::withTrashed()->with(['category']);
+        $query = Product::withTrashed()->with(['category','location']);
     } else {
-        $query = Product::with(['category'])
+        $query = Product::with(['category','location'])
                         ->where('status', 'available');
     }
 
@@ -24,7 +24,7 @@ class ProductRepository
 
     public function find($id)
     {
-        return Product::with(['seller', 'category'])->findOrFail($id);
+        return Product::with(['seller', 'category','location'])->findOrFail($id);
     }
 
     public function create(array $data)
@@ -38,7 +38,7 @@ class ProductRepository
 
     $product->update($data);
 
-    return $product->fresh(['seller', 'category']);
+    return $product->fresh(['seller', 'category','location']);
 }
 
     public function delete($id)

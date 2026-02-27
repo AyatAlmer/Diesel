@@ -10,4 +10,24 @@ class InvoiceRepository
     {
         return Invoice::create($data);
     }
+
+    public function getSalesInvoices()
+{
+    return Invoice::with([
+            'order.product'
+        ])
+        ->where('invoice_number', 'like', 'SALE-%')
+        ->latest()
+        ->get();
+}
+
+    public function getPurchaseInvoices()
+{
+    return Invoice::with([
+            'order.product'
+        ])
+        ->where('invoice_number', 'like', 'PUR-%')
+        ->latest()
+        ->get();
+}
 }

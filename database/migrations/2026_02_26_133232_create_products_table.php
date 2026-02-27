@@ -14,9 +14,11 @@ public function up(): void
     Schema::create('products', function (Blueprint $table) {
         $table->id();
         $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-        $table->foreignId('category_id')->constrained()->cascadeOnDelete();
+        // $table->foreignId('category_id')->constrained()->cascadeOnDelete();
+        $table->foreignId('location_id')->nullable()->constrained()->restrictOnDelete();
         $table->string('title');
         $table->text('description');
+        $table->integer('quantity')->default(0);
         $table->decimal('price', 10, 2);
         $table->string('image')->nullable();
         $table->enum('condition', ['new', 'used']);
@@ -31,6 +33,8 @@ public function up(): void
     public function down(): void
     {
         Schema::dropIfExists('products');
-         $table->dropColumn('image');
+        $table->dropColumn('image');
+        $table->dropColumn('quantity');
+
     }
 };

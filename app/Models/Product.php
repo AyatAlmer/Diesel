@@ -14,12 +14,14 @@ class Product extends Model
 
     protected $fillable = [
         'user_id',
-        'category_id',
+        // 'category_id',
+        'location_id',
         'title',
         'description',
         'price',
         'condition',
         'status',
+        'quantity',
         'image',
     ];
 
@@ -46,4 +48,9 @@ public function getImageUrlAttribute()
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function location()
+{
+    return $this->belongsTo(Location::class);
+}
 }

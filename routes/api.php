@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SaleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,5 +59,31 @@ use Illuminate\Support\Facades\Route;
     Route::prefix('order')->middleware('auth:sanctum')->group(function () {
 
         Route::post('/addOrder', [OrderController::class, 'addOrder']);
+        Route::get('/getPurchaseInvoices', [OrderController::class, 'getPurchaseInvoices']);
 
 });
+
+
+    Route::prefix('sales')->middleware('auth:sanctum')->group(function () {
+
+        Route::post('/store', [SaleController::class, 'store']);
+        Route::get('/getSalesInvoices', [SaleController::class, 'getSalesInvoices']);
+
+});
+
+
+
+    Route::prefix('transactions')->middleware('auth:sanctum')->group(function () {
+
+        Route::get('/summary', [DashboardController::class, 'summary']);
+
+});
+
+    Route::prefix('location')->middleware('auth:sanctum')->group(function () {
+        Route::post('/addLocation', [LocationController::class, 'addLocation']);
+        Route::get('/getAll', [LocationController::class, 'getAll']);
+        Route::get('/showById/{id}', [LocationController::class, 'showById']);
+        Route::put('/updateLocation/{id}', [LocationController::class, 'updateLocation']);
+        Route::delete('/destroyLocation/{id}', [LocationController::class, 'destroyLocation']);
+
+        });

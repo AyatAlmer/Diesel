@@ -3,24 +3,34 @@
 namespace App\Models;
 
 use App\Models\Invoice;
-use App\Models\OrderItem;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-   public function buyer()
-{
-    return $this->belongsTo(User::class, 'buyer_id');
+
+    protected $fillable = [
+        'buyer_id',
+        'product_id',
+        'quantity',
+        'price',
+        'total',
+        'status'
+    ];
+
+    public function buyer()
+    {
+        return $this->belongsTo(User::class, 'buyer_id');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function invoice()
+    {
+        return $this->hasOne(Invoice::class);
+    }
 }
 
-public function items()
-{
-    return $this->hasMany(OrderItem::class);
-}
-
-public function invoice()
-{
-    return $this->hasOne(Invoice::class);
-}
-}

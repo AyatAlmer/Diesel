@@ -1,13 +1,14 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-    Route::prefix('users')->middleware('auth:sanctum')->group(function () {
 
-        Route::post('login', [UserController::class, 'login']);
+    Route::post('login', [UserController::class, 'login']);
+    Route::prefix('users')->middleware('auth:sanctum')->group(function () {
 
     Route::middleware('role:admin')->group(function () {
         Route::post('/addUser', [UserController::class, 'store']);
@@ -50,4 +51,10 @@ use Illuminate\Support\Facades\Route;
         Route::put('/updateCategory/{id}', [CategoryController::class, 'updateCategory']);
         Route::delete('/destroyCategory/{id}', [CategoryController::class, 'destroyCategory']);
     });
+});
+
+    Route::prefix('order')->middleware('auth:sanctum')->group(function () {
+
+        Route::post('/addOrder', [OrderController::class, 'addOrder']);
+
 });

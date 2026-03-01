@@ -24,64 +24,82 @@ class SaleService
         $this->invoiceRepo = $invoiceRepo;
         $this->cashRepo = $cashRepo;
     }
-public function sell($data)
-{
-    return DB::transaction(function () use ($data) {
 
-        $product = Product::findOrFail($data['product_id']);
+    public function sell(array $data)
+    {
+        return DB::transaction(function () use ($data) {
 
-        $quantity = $data['quantity'];
-        $salePrice = $data['sale_price'];
+            if (!isset($data['products']) || !is_array($data['products']) || count($data['products']) === 0) {
+                throw new \Exception('يجب إضافة منتج واحد على الأقل للبيع.');
+            }
 
-        // ✅ التحقق من توفر المخزون
-        if ($product->quantity < $quantity) {
-            throw new \Exception('Not enough stock available');
-        }
+            $totalInvoice = 0;
+            $orderProducts = [];
 
-        $total = $quantity * $salePrice;
+            foreach ($data['products'] as $item) {
+                $product = Product::findOrFail($item['product_id']);
+                $quantity = $item['quantity'];
+                $salePrice = $item['sale_price'];
 
-        // إنشاء الطلب (بيع)
-        $order = $this->orderRepo->create([
-            'buyer_id'   => auth()->id(),
-            'product_id' => $product->id,
-            'quantity'   => $quantity,
-            'price'      => $salePrice,
-            'total'      => $total,
-            'status'     => 'completed'
-        ]);
+                if ($product->quantity < $quantity) {
+                    throw new \Exception("الكمية المتوفرة من {$product->title} غير كافية");
+                }
 
-        // إنشاء الفاتورة
-        $invoice = $this->invoiceRepo->create([
-            'order_id'       => $order->id,
-            'invoice_number' => 'SALE-' . strtoupper(Str::random(6)),
-            'total_amount'   => $total,
-            'status'         => 'paid',
-            'issued_at'      => now()
-        ]);
+                $total = $quantity * $salePrice;
 
-        // تسجيل حركة نقدية (إيراد)
-        $this->cashRepo->create([
-            'invoice_id' => $invoice->id,
-            'amount'     => $total,
-            'type'       => 'income'
-        ]);
+                // إنشاء الطلب لكل منتج
+                $order = $this->orderRepo->create([
+                    'buyer_id'   => auth()->id(),
+                    'product_id' => $product->id,
+                    'quantity'   => $quantity,
+                    'price'      => $salePrice,
+                    'total'      => $total,
+                    'status'     => 'completed'
+                ]);
 
-        // ✅ طرح الكمية من المخزون
-        $product->decrement('quantity', $quantity);
+                $totalInvoice += $total;
 
-        // ✅ تحديث الحالة حسب الكمية المتبقية
-        if ($product->quantity == 0) {
-            $product->update(['status' => 'sold']);
-        } else {
-            $product->update(['status' => 'available']);
-        }
+                // خصم الكمية من المخزون
+                $product->decrement('quantity', $quantity);
+                $product->update([
+                    'status' => $product->quantity > 0 ? 'متاح' : 'مباع'
+                ]);
 
-        return $order->load('product', 'invoice');
-    });
-}
+                $orderProducts[] = [
+                    'product_name' => $product->title,
+                    'quantity' => $quantity,
+                    'sale_price' => $salePrice,
+                    'total' => $total
+                ];
+            }
+
+            // إنشاء فاتورة واحدة لكل البيع
+            $invoice = $this->invoiceRepo->create([
+                'order_id'       => $order->id, // آخر order أو حسب تصميمك
+                'invoice_number' => 'SALE-' . strtoupper(Str::random(6)),
+                'total_amount'   => $totalInvoice,
+                'status'         => 'paid',
+                'issued_at'      => now()
+            ]);
+
+            // تسجيل حركة نقدية مجمعة (إيراد)
+            $this->cashRepo->create([
+                'invoice_id' => $invoice->id,
+                'amount'     => $totalInvoice,
+                'type'       => 'income'
+            ]);
+
+            return [
+                'invoice_number' => $invoice->invoice_number,
+                'total_amount'   => $totalInvoice,
+                'products'       => $orderProducts,
+                'issued_at'      => $invoice->issued_at,
+            ];
+        });
+    }
 
     public function getSalesInvoices()
-{
-    return $this->invoiceRepo->getSalesInvoices();
-}
+    {
+        return $this->invoiceRepo->getSalesInvoices();
+    }
 }

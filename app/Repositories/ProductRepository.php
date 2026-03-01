@@ -11,7 +11,7 @@ class ProductRepository
         $query = Product::withTrashed()->with(['category','location']);
     } else {
         $query = Product::with(['category','location'])
-                        ->where('status', 'available');
+                        ->where('status', 'متاح');
     }
 
     if (!empty($filters['category_id'])) {
@@ -52,4 +52,8 @@ class ProductRepository
     $product->restore();
     return $product;
     }
+    public function query()
+{
+    return Product::query();
+}
 }

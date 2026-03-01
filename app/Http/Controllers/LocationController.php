@@ -46,7 +46,7 @@ class LocationController extends Controller
         $this->service->delete($id);
 
         return response()->json([
-            'message' => 'Location deleted successfully'
+            'message' => 'تم حذف الموقع بنجاح'
         ]);
 
     } catch (\Exception $e) {

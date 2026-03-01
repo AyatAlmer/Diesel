@@ -21,51 +21,104 @@ class OrderService
         $this->orderRepo = $orderRepo;
         $this->invoiceRepo = $invoiceRepo;
     }
+
     public function purchase($data)
-{
-    return DB::transaction(function () use ($data) {
+    {
+        return DB::transaction(function () use ($data) {
 
-        $product = Product::findOrFail($data['product_id']);
+            if (!isset($data['products']) || !is_array($data['products']) || count($data['products']) === 0) {
+                throw new \Exception('يجب أن تحتوي الفاتورة على منتج واحد على الأقل.');
+            }
 
-        $quantity = $data['quantity'];
-        $purchasePrice = $data['purchase_price'];
-        $total = $quantity * $purchasePrice;
+            $totalInvoice = 0;
+            $orderProducts = [];
 
-        $order = $this->orderRepo->create([
-            'buyer_id'   => auth()->id(),
-            'product_id' => $product->id,
-            'quantity'   => $quantity,
-            'price'      => $purchasePrice,
-            'total'      => $total,
-            'status'     => 'completed'
-        ]);
+            foreach ($data['products'] as $item) {
+                $title = $item['title'] ?? null;
+                $quantity = $item['quantity'] ?? null;
+                $price = $item['price'] ?? null;
+                $location_id = $item['location_id'] ?? null;
+                $description = $item['description'] ?? null;
+                $condition = $item['condition'] ?? 'new';
 
-        $invoice = $this->invoiceRepo->create([
-            'order_id'       => $order->id,
-            'invoice_number' => 'PUR-' . strtoupper(Str::random(6)),
-            'total_amount'   => $total,
-            'status'         => 'paid',
-            'issued_at'      => now()
-        ]);
+                if (!$title || !$quantity || !$price) {
+                    throw new \Exception("المنتج {$title} يحتوي على بيانات ناقصة (الاسم، الكمية أو السعر).");
+                }
 
-        CashTransaction::create([
-            'invoice_id' => $invoice->id,
-            'amount'     => $total,
-            'type'       => 'expense'
-        ]);
+                // نبحث إذا المنتج موجود مسبقًا حسب الاسم
+                $product = Product::where('title', $title)->first();
 
-        $product->increment('quantity', $quantity);
+                if ($product) {
+                    // تحديث الكمية والسعر والوصف والموقع
+                    $product->increment('quantity', $quantity);
+                    $product->update([
+                        'price' => $price,
+                        'description' => $description ?? $product->description,
+                        'condition' => $condition,
+                        'location_id' => $location_id ?? $product->location_id,
+                        'status' => 'متاح'
+                    ]);
+                } else {
+                    // إنشاء المنتج الجديد
+                    $product = Product::create([
+                        'title' => $title,
+                        'description' => $description,
+                        'condition' => $condition,
+                        'location_id' => $location_id,
+                        'quantity' => $quantity,
+                        'price'  => $price,
+                        'status' => 'متاح',
+                        'user_id' => auth()->id()
+                    ]);
+                }
 
-        if ($product->quantity > 0) {
-            $product->update(['status' => 'available']);
-        }
+                // إنشاء الطلب لكل منتج
+                $order = $this->orderRepo->create([
+                    'buyer_id' => auth()->id(),
+                    'product_id' => $product->id,
+                    'quantity' => $quantity,
+                    'price' => $price,
+                    'total' => $quantity * $price,
+                    'status' => 'completed'
+                ]);
 
-        return $this->orderRepo->withRelations($order);
-    });
-}
+                $totalInvoice += $quantity * $price;
+
+                $orderProducts[] = [
+                    'product_name' => $product->title,
+                    'quantity' => $quantity,
+                    'price' => $price,
+                    'total' => $quantity * $price
+                ];
+            }
+
+            // إنشاء الفاتورة
+            $invoice = $this->invoiceRepo->create([
+                'order_id' => $order->id,
+                'invoice_number' => 'PUR-' . strtoupper(Str::random(6)),
+                'total_amount' => $totalInvoice,
+                'status' => 'paid',
+                'issued_at' => now()
+            ]);
+
+            // تسجيل حركة نقدية
+            CashTransaction::create([
+                'invoice_id' => $invoice->id,
+                'amount' => $totalInvoice,
+                'type' => 'expense'
+            ]);
+
+            return [
+                'invoice_number' => $invoice->invoice_number,
+                'total_amount' => $totalInvoice,
+                'products' => $orderProducts,
+                'issued_at' => $invoice->issued_at,
+            ];
+        });
+    }
 
     public function getPurchaseInvoices()
     {
-    return $this->invoiceRepo->getPurchaseInvoices();
+        return $this->invoiceRepo->getPurchaseInvoices();
     }
 }

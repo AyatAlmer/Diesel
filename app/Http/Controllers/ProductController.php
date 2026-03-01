@@ -61,6 +61,30 @@ class ProductController extends Controller
     public function restoreProduct($id)
     {
     $product = $this->productService->restoreProduct($id);
-    return $this->success($product, 'Product restored successfully');
+    return $this->success($product, 'تم استعادة المنتجات المحذوفة بنجاح');
     }
+
+    public function searchProduct(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string'
+    ]);
+
+    $products = $this->productService->searchProductByName($request->name);
+
+    return response()->json([
+        'message' => 'تم العثور على المنتجات',
+        'data' => $products
+    ]);
+}
+
+public function showDeletedProducts()
+{
+    $products = $this->productService->getDeletedProducts();
+
+    return response()->json([
+        'message' => 'تم جلب المنتجات المحذوفة بنجاح',
+        'data' => $products
+    ]);
+}
 }

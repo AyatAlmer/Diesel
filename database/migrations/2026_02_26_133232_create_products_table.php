@@ -16,13 +16,13 @@ public function up(): void
         $table->foreignId('user_id')->constrained()->cascadeOnDelete();
         // $table->foreignId('category_id')->constrained()->cascadeOnDelete();
         $table->foreignId('location_id')->nullable()->constrained()->restrictOnDelete();
-        $table->string('title');
+        $table->string('title')->unique();
         $table->text('description');
         $table->integer('quantity')->default(0);
-        $table->decimal('price', 10, 2);
+        $table->decimal('price', 10, 2)->default(0);
         $table->string('image')->nullable();
         $table->enum('condition', ['new', 'used']);
-        $table->enum('status', ['available', 'sold'])->default('available');
+        $table->enum('status', ['متاح', 'غير متاح' ,'مباع'])->default('متاح');
         $table->softDeletes();
         $table->timestamps();
     });

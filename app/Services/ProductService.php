@@ -44,7 +44,7 @@ class ProductService
         if (auth()->user()->role !== 'admin') {
             return false;
         }
-
+        $this->productRepository->update($id, ['status' => 'غير متاح']);
         return $this->productRepository->delete($id);
     }
 
@@ -60,6 +60,26 @@ class ProductService
 
     public function restoreProduct($id)
     {
-    return $this->productRepository->restore($id);
+        $product = $this->productRepository->restore($id);
+
+        $this->productRepository->update($id, ['status' => 'متاح']);
+
+        return $product;
     }
+
+    public function searchProductByName(string $name)
+{
+    return $this->productRepository->query()
+        ->withTrashed() // يشمل المنتجات المحذوفة
+        ->where('title', 'like', "%{$name}%")
+        ->get();
+}
+
+public function getDeletedProducts()
+{
+    return $this->productRepository->query()
+        ->onlyTrashed()  // يختار فقط المنتجات المحذوفة
+        ->with(['category', 'location', 'seller'])
+        ->get();
+}
 }

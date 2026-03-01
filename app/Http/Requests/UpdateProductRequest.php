@@ -29,7 +29,7 @@ class UpdateProductRequest extends FormRequest
         'price' => 'sometimes|numeric|min:0',
         'quantity' => 'sometimes|numeric|min:0',
         'condition' => 'sometimes|in:new,used',
-        'status' => 'sometimes|in:available,sold',
+        'status' => 'sometimes|in:متاح,مباع,غير متاح',
         'image' => 'sometimes|image|mimes:jpg,jpeg,png|max:2048',
     ];
 }

@@ -12,18 +12,16 @@ class Product extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = [
-        'user_id',
-        // 'category_id',
-        'location_id',
-        'title',
-        'description',
-        'price',
-        'condition',
-        'status',
-        'quantity',
-        'image',
-    ];
+  protected $fillable = [
+    'user_id',
+    'title',
+    'description',
+    'condition',
+    'location_id',
+    'quantity',
+    'price',   
+    'status'
+];
 
     protected $appends = ['image_url'];
 

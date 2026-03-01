@@ -19,7 +19,7 @@ class DashboardController extends Controller
         $data = $this->dashboardService->getSummary();
 
         return response()->json([
-            'message' => 'Financial summary retrieved successfully',
+            'message' => 'تم ارجاع الجرد بنجاح',
             'data'    => $data
         ]);
     }

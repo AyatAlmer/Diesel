@@ -23,11 +23,11 @@ class StoreProductRequest extends FormRequest
 {
     return [
         // 'category_id' => 'nullable|exists:categories,id',
-        'location_id' => 'nullable|exists:locations,id',
-        'title' => 'nullable|string|max:255',
+        'location_id' => 'required|exists:locations,id',
+        'title' => 'required|string|max:255',
         'description' => 'nullable|string',
         'price' => 'required|numeric|min:0',
-        'quantity' => 'required|numeric|min:0',
+        'quantity' => 'nullable|numeric|min:0',
         'condition' => 'nullable|in:new,used',
         'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
     ];

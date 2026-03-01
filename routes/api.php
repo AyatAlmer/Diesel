@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Route;
         Route::get('/showUserById/{id}', [UserController::class, 'showUserById']);
         // Route::get('/showByEmail/{email}', [UserController::class, 'getByEmail']);
         Route::get('/gitAllUser', [UserController::class, 'getAll']);
+        Route::get('/searchUser', [UserController::class, 'searchUser']);
+
     });
 
         Route::post('logout', [UserController::class, 'logout']);
@@ -31,6 +33,8 @@ use Illuminate\Support\Facades\Route;
 
         Route::get('/showProductById/{id}', [ProductController::class, 'showProductById']);
         Route::get('/showAllProduct', [ProductController::class, 'showAllProduct']);
+        Route::get('/searchProduct', [ProductController::class, 'searchProduct']);
+        Route::get('/showDeletedProducts', [ProductController::class, 'showDeletedProducts']);
 
     Route::middleware('role:admin')->group(function () {
         Route::post('/addProduct', [ProductController::class, 'addProduct']);

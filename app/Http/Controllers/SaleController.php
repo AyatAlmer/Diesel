@@ -14,29 +14,36 @@ class SaleController extends Controller
         $this->saleService = $saleService;
     }
 
+    // بيع أكثر من منتج
     public function store(Request $request)
     {
         $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'quantity'   => 'required|integer|min:1',
-            'sale_price' => 'required|numeric|min:0'
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.quantity'   => 'required|integer|min:1',
+            'products.*.sale_price' => 'required|numeric|min:0',
+        ], [
+            'products.required' => 'يجب إضافة منتج واحد على الأقل للبيع',
+            'products.*.product_id.required' => 'المنتج مطلوب',
+            'products.*.quantity.required' => 'كمية المنتج مطلوبة',
+            'products.*.sale_price.required' => 'سعر البيع مطلوب',
         ]);
 
         $sale = $this->saleService->sell($request->all());
 
         return response()->json([
-            'message' => 'Sale completed successfully',
+            'message' => 'تم إتمام عملية البيع بنجاح',
             'data'    => $sale
         ]);
     }
 
     public function getSalesInvoices()
-{
-    $sales = $this->saleService->getSalesInvoices();
+    {
+        $sales = $this->saleService->getSalesInvoices();
 
-    return response()->json([
-        'message' => 'Sales invoices retrieved successfully',
-        'data'    => $sales
-    ]);
-}
+        return response()->json([
+            'message' => 'تم عرض فواتير البيع بنجاح',
+            'data'    => $sales
+        ]);
+    }
 }

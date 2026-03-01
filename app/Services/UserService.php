@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Hash;
 
@@ -61,7 +62,7 @@ class UserService
 
     public function login(array $data)
     {
-    $user = $this->userRepository->findByPhone($data['phone']);
+    $user = $this->userRepository->findByPhone($data['name']);
 
     if (!$user || !Hash::check($data['password'], $user->password)) {
         return false;
@@ -79,5 +80,10 @@ class UserService
     public function logout($user)
     {
     $user->currentAccessToken()->delete();
+    }
+
+    public function searchUserByName(string $name)
+    {
+        return User::where('name', 'like', "%{$name}%")->get();
     }
 }

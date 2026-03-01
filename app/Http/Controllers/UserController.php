@@ -23,13 +23,13 @@ class UserController extends Controller
     public function store(StoreUserRequest $request)
     {
         $user = $this->userService->createUser($request->validated());
-        return $this->success($user, 'User created successfully');
+        return $this->success($user, 'تم اضافة مستخدم بنجاح');
     }
 
     public function update(UpdateUserRequest $request, $id)
     {
         $user = $this->userService->updateUser($id, $request->validated());
-        return $this->success($user, 'User updated successfully');
+        return $this->success($user, 'تم تعديل البيانات بنجاح');
     }
 
     public function destroy($id)
@@ -38,7 +38,7 @@ class UserController extends Controller
         if (!$result) {
         return $this->error('Cannot delete system admin', 403);
     }
-        return $this->success(null, 'User deleted successfully');
+        return $this->success(null, 'تم حذف البيانات بنجاح');
     }
 
     public function showUserById($id)
@@ -72,12 +72,25 @@ class UserController extends Controller
         return $this->error('Invalid credentials', 401);
     }
 
-    return $this->success($result, 'Login successful');
+    return $this->success($result, 'تم تسجيل الدخول');
     }
 
     public function logout(Request $request)
     {
     $this->userService->logout($request->user());
-    return $this->success(null, 'Logged out successfully');
+    return $this->success(null, 'تم تسجيل الخروج بنجاح');
     }
+
+    public function searchUser(Request $request, UserService $userService)
+{
+    $request->validate([
+        'name' => 'required|string'
+    ]);
+
+    $users = $userService->searchUserByName($request->name);
+
+    return response()->json([
+        'message' => 'تم العثور على المستخدمين',
+        'data' => $users
+    ]);}
 }
